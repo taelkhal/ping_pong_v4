@@ -816,13 +816,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="middle">
                     <div class="paragraph">
                         <h2>Classic Pong Modern Twist.</h2>
-                        <p>"Pongify" is likely a playful and modern take on the classic game "Pong," which was
-                            one of the earliest arcade games. The name combines "Pong" with the suffix "-ify,"
-                            which suggests transformation or action. So, "Pongify" could imply a platform or
-                            service that brings the experience of Pong into a new or updated form—likely an
-                            online or digital version, as you’re planning for a website hosting the game. It's
-                            catchy, modern, and suggests a fun, dynamic way to engage with the game.
-                        </p>
+                        <p>"Pongify" is a reimagined version of the classic Pong game, bringing a 
+                        fresh and engaging multiplayer experience. Compete with friends, join tournaments, 
+                        and relive the nostalgia with enhanced graphics and smooth gameplay.</p>
                         <button class="start-playing-btn" id="startplay" >Start Playing</button>
                     </div>
                     <div>
