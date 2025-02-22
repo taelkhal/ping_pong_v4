@@ -810,7 +810,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <a href="#/game" data-page="game">GAME</a>
                         <a href="" data-page="tournament">TOURNAMENT</a>
                         <a href="#/chat" data-page="chat">CHAT</a>
-                        <a href="" data-page="settings">SETTINGS</a>
+                        <button id="signout-btn" type="button">Sign Out</button>
                     </div>
                 </div>
                 <div class="middle">
@@ -876,7 +876,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <a href="#/game" data-page="game">GAME</a>
                         <a href="" data-page="tournament">TOURNAMENT</a>
                         <a href="#/chat" data-page="chat">CHAT</a>
-                        <a href="" data-page="settings">SETTINGS</a>
+                        <button class="signout" id="signout-btn" type="button">Sign Out</button>
                     </div>
                 </div>
             <div class="profile-container">
@@ -885,7 +885,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img class="p_img" id="profile-img" class="profile-img" src="profile images/luffy_snipper.jpg">
                     <h2 class="p_username" id="profile-username" class="profile-username">Username</h2>
                     <button class="edit_p" id="edit-p-btn" type="button">Edit Profile</button>
-                    <button class="signout" id="signout-btn" type="button">Sign Out</button>
+                    
                 </div>
                 <div class="profile-stats">
                     <img class="stats-border wins" src="profile imgs/level_and_wins_window.png" alt="Wins">
@@ -906,7 +906,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <a href="#/game" data-page="game" class="active">GAME</a>
                         <a href="" data-page="tournament">TOURNAMENT</a>
                         <a href="#/chat" data-page="chat">CHAT</a>
-                        <a href="" data-page="settings">SETTINGS</a>
                     </div>
                 </div>
                 <div class="game-container">
@@ -924,7 +923,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <a href="#/game" data-page="game">GAME</a>
                         <a href="" data-page="tournament">TOURNAMENT</a>
                         <a href="#/chat" data-page="chat" class="active">CHAT</a>
-                        <a href="" data-page="settings">SETTINGS</a>
                     </div>
                 </div>
                 <div class="border">
@@ -1134,6 +1132,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadPendingFriendRequests();
                 setupDashboard();
                 // loadProfileInfo();
+                setupSignOut();
                 break;
             case '#/home':
                 app.innerHTML = pages.home;
@@ -1165,6 +1164,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 app.innerHTML = pages.chat;
                 loadCSS('chat.css');
                 initializechatFunctionality();
+                setupSignOut();
                 break;
             default:
                 app.innerHTML = pages.signIn;
@@ -1338,12 +1338,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     async function loadProfileInfo() {
         try {
-
             const access_token = localStorage.getItem('authToken');
-            // if (!token) return;
-            if (!access_token) 
-            {
-                console.log("No access token found in localStorage." , {access_token});
+            if (!access_token) {
+                console.log("No access token found in localStorage.", {access_token});
                 return;
             }
             const response = await fetch('http://127.0.0.1:8000/profile/', {
@@ -1351,25 +1348,73 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: {
                     "Authorization": `Bearer ${access_token}`,
                     'Content-Type': 'application/json',
-                    // 'Accept': 'application/vnd.api+json',
                 },
             });
-            console.log('Response Headers:', response.headers);
-            
-            if (response.ok)
-            {
-                // const data = await response.json();
+            console.log('Response Headers:', response);
+            console.log("GET Response Status:", response.status);
+    
+            if (response.ok) {
                 const result = await response.json();
-                const profileData = result.data.attributes;
-                // document.getElementById('profile-img').src = data.image?.link || 'default-avatar.png';
-                // document.getElementById('profile-username').innerText = data.login || 'Unknown User';
-                document.getElementById('profile-img').src = profileData.avatar || 'default-avatar.png';
-                document.getElementById('profile-username').innerText = profileData.username || 'Unknown User';
+                console.log("GET Profile Data:", result);
+                const profileData = result.data?.attributes || {};
+                const avatarUrl = profileData.avatar || 'images/default-avatar.png';
+                const username = profileData.username || 'Unknown User';
+                console.log("Avatar URL:", avatarUrl);
+                console.log("Username:", username);
+    
+                const profileImg = document.getElementById('profile-img');
+                profileImg.src = `http://127.0.0.1:8000${avatarUrl}?t=${new Date().getTime()}`; // Use absolute URL
+                profileImg.onload = () => console.log("Image loaded successfully");
+                profileImg.onerror = () => console.error("Image failed to load:", avatarUrl);
+                document.getElementById('profile-username').innerText = username;
+            } else {
+                console.error("GET Error:", await response.json());
+                document.getElementById('profile-img').src = 'images/default-avatar.png';
+                document.getElementById('profile-username').innerText = 'Unknown User';
             }
         } catch (error) {
             console.error('Error loading profile info:', error);
+            document.getElementById('profile-img').src = 'images/default-avatar.png';
+            document.getElementById('profile-username').innerText = 'Unknown User';
         }
     }
+
+    // async function loadProfileInfo() {
+    //     try {
+
+    //         const access_token = localStorage.getItem('authToken');
+    //         // if (!token) return;
+    //         if (!access_token) 
+    //         {
+    //             console.log("No access token found in localStorage." , {access_token});
+    //             return;
+    //         }
+    //         const response = await fetch('http://127.0.0.1:8000/profile/', {
+    //             method: 'GET',
+    //             headers: {
+    //                 "Authorization": `Bearer ${access_token}`,
+    //                 'Content-Type': 'application/json',
+    //                 // 'Accept': 'application/vnd.api+json',
+    //             },
+    //         });
+    //         console.log('Response Headers:', response);
+            
+    //         if (response.ok)
+    //         {
+    //             console.log("ALOOOOOc")
+    //             // const data = await response.json();
+    //             const result = await response.json();
+    //             const profileData = result.data.attributes;
+    //             console.log(result)
+    //             // document.getElementById('profile-img').src = data.image?.link || 'default-avatar.png';
+    //             // document.getElementById('profile-username').innerText = data.login || 'Unknown User';
+    //             document.getElementById('profile-img').src = profileData.avatar || 'default-avatar.png';
+    //             document.getElementById('profile-username').innerText = profileData.username || 'Unknown User';
+    //         }
+    //     } catch (error) {
+    //         console.error('Error loading profile info:', error);
+    //     }
+    // }
     
     // function initializeHomeFunctionality() {
     //     const addFriendsButton = document.getElementById("add-friends-btn");
@@ -2756,6 +2801,7 @@ async function acceptFriendRequest(requestId) {
         // Save: Upload file and update profile
         saveButton.addEventListener('click', async () => {
             const newUsername = usernameInput.value.trim();
+            console.log("New username:", newUsername);
             const file = avatarInput.files[0];
         
             if (!newUsername) {
@@ -2766,7 +2812,7 @@ async function acceptFriendRequest(requestId) {
             try {
                 const token = localStorage.getItem('authToken');
                 const formData = new FormData();
-                formData.append('user.username', newUsername);
+                formData.append('username', newUsername); // Match backend field
                 if (file) {
                     formData.append('avatar', file);
                 }
@@ -2779,18 +2825,26 @@ async function acceptFriendRequest(requestId) {
                     body: formData
                 });
         
-                console.log("Response status:", response.status); // Log status
-                const result = await response.json(); // Parse response regardless of status
-                console.log("Backend response:", result); // Log full response
+                console.log("Response status:", response.status);
+                const result = await response.json();
+                console.log("PUT Response Data:", result);
         
                 if (response.ok) {
+                    // Update username
                     document.getElementById('profile-username').innerText = newUsername;
+        
+                    // Update avatar if uploaded, using backend URL, not avatarPreview.src
                     if (file) {
-                        // Adjust based on actual response structure
-                        const newAvatarUrl = result.profile?.avatar || result.avatar || avatarPreview.src;
-                        document.getElementById('profile-img').src = newAvatarUrl;
+                        const newAvatarUrl = result.profile?.avatar || 'images/default-avatar.png';
+                        console.log("New avatar URL from backend:", newAvatarUrl);
+                        const profileImg = document.getElementById('profile-img');
+                        profileImg.src = `http://127.0.0.1:8000${newAvatarUrl}?t=${new Date().getTime()}`; // Force reload with base URL
+                        profileImg.onload = () => console.log("Image loaded successfully");
+                        profileImg.onerror = () => console.error("Image failed to load:", newAvatarUrl);
                     }
                     alert("Profile updated successfully!");
+                    // Sync with backend
+                    await loadProfileInfo();
                 } else {
                     console.error("Server error:", result);
                     alert("Failed to update profile: " + JSON.stringify(result));
@@ -2805,6 +2859,81 @@ async function acceptFriendRequest(requestId) {
             modal.style.transform = 'scale(0.9)';
             setTimeout(() => document.body.removeChild(overlay), 300);
         });
+        // saveButton.addEventListener('click', async () => {
+        //     const newUsername = usernameInput.value.trim();
+        //     console.log("new user: ", newUsername);
+        //     const file = avatarInput.files[0]; // Get the file from the input
+        
+        //     // If no new username, keep the existing one
+        //     if (!newUsername) {
+        //         usernameInput.value = document.getElementById('profile-username').innerText;
+        //         return;
+        //     }
+        
+        //     try {
+        //         const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        //         const formData = new FormData();
+        
+        //         // Append the username to the FormData
+        //         formData.append('username', newUsername);
+        
+        //         // If a file (avatar) is selected, append it to the FormData
+        //         if (file) {
+        //             formData.append('avatar', file); // Ensure the name matches the backend expected field name
+        //         }
+        
+        //         // Make the PUT request to the backend with the FormData in the body
+        //         const response = await fetch('http://127.0.0.1:8000/profile/update/', {
+        //             method: 'PUT',
+        //             headers: {
+        //                 'Authorization': `Bearer ${token}`,  // Include the Bearer token
+        //                 // Do not set 'Content-Type' here, let the browser handle it automatically
+        //             },
+        //             body: formData,  // Send the FormData as the body of the request
+        //         });
+        
+        //         console.log("Response status:", response.status); // Log the response status
+        //         const result = await response.json(); // Parse the response as JSON
+        //         console.log("Backend response:", result); // Log the result from the backend
+        
+        //         if (response.ok) {
+        //             // Check if the backend returns the avatar URL correctly
+        //             if (result.data && result.data.profile && result.data.profile.attributes && result.data.profile.attributes.avatar) {
+        //                 const avatarUrl = result.data.profile.attributes.avatar;  // Extract the full avatar URL
+        //                 console.log("Updated avatar URL:", avatarUrl);  // Log for debugging
+        
+        //                 // Update the profile image with the new avatar URL
+        //                 const avatarImg = document.getElementById('profile-img');
+        //                 avatarImg.src = avatarUrl;  // Update the profile image source
+        
+        //                 // If needed, also update the avatar preview in the modal
+        //                 const avatarPreview = document.getElementById('avatar-preview');
+        //                 avatarPreview.src = avatarUrl;
+        //             }
+        
+        //             // You can also update the username if needed
+        //             const profileUsername = document.getElementById('profile-username');
+        //             profileUsername.innerText = newUsername;
+        
+        //             loadProfileInfo();  // Optionally refresh the profile data from backend
+        
+        //         } else {
+        //             console.error("Server error:", result);
+        //             alert("Failed to update profile: " + JSON.stringify(result));
+        //         }
+        //     } catch (error) {
+        //         console.error("Error updating profile:", error);
+        //         alert("Error updating profile. Please try again.");
+        //     }
+        
+        //     // Hide the modal after updating
+        //     overlay.style.opacity = '0';
+        //     modal.style.opacity = '0';
+        //     modal.style.transform = 'scale(0.9)';
+        //     setTimeout(() => document.body.removeChild(overlay), 300);
+        // });
+        
+                
     }
     // function initializeProfileEdit() {
     //     const editProfileButton = document.getElementById('edit-p-btn');

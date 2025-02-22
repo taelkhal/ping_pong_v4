@@ -84,6 +84,23 @@ body
     height: 65vh;
     margin-top: 5vh;
 }
+
+.signout
+{
+  position: absolute;
+  color: #fff;
+  top: 820px;
+  font-family: "Poppins", sans-serif;
+  font-size: 2vh;
+  /* margin: 2vh 0 0 12vw; */
+  /* border: none; */
+  border: #fff solid 2px;
+  border-radius: 20px;
+  background: transparent;
+  padding: 0.5vh 1vw;
+  font-weight: bold;
+}
+
 .app-container {
     display: flex;
     max-width: 800px;

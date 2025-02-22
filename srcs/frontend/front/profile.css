@@ -258,9 +258,9 @@ body
 }
 .signout
 {
-  position: absolute;
+  /* position: absolute; */
   color: #fff;
-  top: 820px;
+  /* top: 820px; */
   font-family: "Poppins", sans-serif;
   font-size: 2vh;
   /* margin: 2vh 0 0 12vw; */
