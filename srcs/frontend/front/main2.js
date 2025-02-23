@@ -876,7 +876,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <a href="#/game" data-page="game">GAME</a>
                         <a href="" data-page="tournament">TOURNAMENT</a>
                         <a href="#/chat" data-page="chat">CHAT</a>
-                        <button class="signout" id="signout-btn" type="button">Sign Out</button>
+                        <button id="signout-btn" type="button">Sign Out</button>
                     </div>
                 </div>
             <div class="profile-container">
@@ -1238,7 +1238,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response.ok) 
                 {
                     const result = await response.json();
+                    console.log("result : ", result);
                     localStorage.setItem('authToken', result.data.access);
+                    localStorage.setItem('user_id', result.data.user_id);
                     navigateTo('#/dashboard');
                 }
                 else 
@@ -1363,10 +1365,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Username:", username);
     
                 const profileImg = document.getElementById('profile-img');
-                profileImg.src = `http://127.0.0.1:8000${avatarUrl}?t=${new Date().getTime()}`; // Use absolute URL
-                profileImg.onload = () => console.log("Image loaded successfully");
-                profileImg.onerror = () => console.error("Image failed to load:", avatarUrl);
-                document.getElementById('profile-username').innerText = username;
+                if (avatarUrl.startsWith("https://"))
+                {
+                    profileImg.src = avatarUrl;
+                    document.getElementById('profile-username').innerText = username;
+                    profileImg.onload = () => console.log("Image loaded successfully");
+                    profileImg.onerror = () => console.error("Image failed to load:", avatarUrl);
+                }
+                else
+                {
+                    profileImg.src = `http://127.0.0.1:8000${avatarUrl}?t=${new Date().getTime()}`; // Use absolute URL
+                    profileImg.onload = () => console.log("Image loaded successfully");
+                    profileImg.onerror = () => console.error("Image failed to load:", avatarUrl);
+                    document.getElementById('profile-username').innerText = username;
+                }
             } else {
                 console.error("GET Error:", await response.json());
                 document.getElementById('profile-img').src = 'images/default-avatar.png';
@@ -2197,10 +2209,20 @@ async function acceptFriendRequest(requestId) {
             
             // Avatar image
             const avatarImg = document.createElement("img");
-            avatarImg.src = request.sender_avatar || "images/default-avatar.png";
-            avatarImg.alt = request.sender_username || "User Avatar";
-            avatarImg.classList.add("user-avatar");
-            
+            //check for img intra url
+            if(request.sender_avatar.startsWith("https://"))
+            {
+                avatarImg.src = request.sender_avatar || "images/default-avatar.png";
+                avatarImg.alt = request.sender_username || "User Avatar";
+                avatarImg.classList.add("user-avatar");
+            }
+            else
+            {
+                avatarImg.src = `http://127.0.0.1:8000${request.sender_avatar}` || "images/default-avatar.png";
+                console.log("avatar 1: " ,avatarImg.src);
+                avatarImg.alt = request.sender_username || "User Avatar";
+                avatarImg.classList.add("user-avatar");
+            }
             // Username
             const usernameSpan = document.createElement("span");
             usernameSpan.classList.add("username");
@@ -2275,9 +2297,10 @@ async function acceptFriendRequest(requestId) {
       
           if (friendList.length === 0)
           {
-            friendListContainer.innerHTML = "<p>No friends found.</p>";
+            let noFriendsMessage = document.createElement("h2"); // Create a new paragraph element
             noFriendsMessage.textContent = "No friends found.";
-            noFriendsMessage.classList.add("no-friends-message"); // Styled message
+            noFriendsMessage.classList.add("no-friends-message"); // Add styling class
+            friendListContainer.appendChild(noFriendsMessage);
           } else {
             friendList.forEach(friend => {
               const friendDiv = document.createElement("div");
@@ -2285,10 +2308,18 @@ async function acceptFriendRequest(requestId) {
       
               // Avatar image
               const avatarImg = document.createElement("img");
-              avatarImg.src = friend.avatar || "images/default-avatar.png";
+            if (friend.avatar.startsWith("https://"))
+            {
+                avatarImg.src = friend.avatar || "images/default-avatar.png";
+                avatarImg.alt = friend.username || "Friend Avatar";
+                avatarImg.classList.add("friend-avatar");
+            }
+            else
+            {
+              avatarImg.src = `http://127.0.0.1:8000${friend.avatar}` || "images/default-avatar.png";
               avatarImg.alt = friend.username || "Friend Avatar";
               avatarImg.classList.add("friend-avatar");
-      
+            }
               // Username
               const usernameSpan = document.createElement("span");
               usernameSpan.classList.add("friend-username");
@@ -2437,9 +2468,20 @@ async function acceptFriendRequest(requestId) {
       
           // Create avatar image element
           const avatarImg = document.createElement("img");
-          avatarImg.src = user.avatar || "images/default-avatar.png";
-          avatarImg.alt = user.username || "User Avatar";
+        //   avatarImg.src = user.avatar || "images/default-avatar.png";
+        if (user.avatar.startsWith("https://"))
+        {
+            avatarImg.src = user.avatar || "images/default-avatar.png";
+            avatarImg.alt = user.username || "User Avatar";
+            avatarImg.classList.add("user-avatar");
+        }
+        else
+        {
+            avatarImg.src = `http://127.0.0.1:8000${user.avatar}` || "images/default-avatar.png";
+            console.log("avatar 1: " ,avatarImg.src);
+            avatarImg.alt = user.username || "User Avatar";
         //   avatarImg.classList.add("user-avatar");
+        }
         
           // Create username element
           const usernameSpan = document.createElement("span");
@@ -2489,6 +2531,7 @@ async function acceptFriendRequest(requestId) {
       
           // Exclude the current user (if user_id is stored)
           const currentUserId = localStorage.getItem("user_id");
+          console.log("Current User ID:", currentUserId);
           if (currentUserId) {
             userList = userList.filter(user => parseInt(user.id) !== parseInt(currentUserId));
           }
@@ -2834,18 +2877,20 @@ async function acceptFriendRequest(requestId) {
                     document.getElementById('profile-username').innerText = newUsername;
         
                     // Update avatar if uploaded, using backend URL, not avatarPreview.src
-                    if (file) {
-                        const newAvatarUrl = result.profile?.avatar || 'images/default-avatar.png';
-                        console.log("New avatar URL from backend:", newAvatarUrl);
-                        const profileImg = document.getElementById('profile-img');
-                        profileImg.src = `http://127.0.0.1:8000${newAvatarUrl}?t=${new Date().getTime()}`; // Force reload with base URL
-                        profileImg.onload = () => console.log("Image loaded successfully");
-                        profileImg.onerror = () => console.error("Image failed to load:", newAvatarUrl);
-                    }
+                    // if (file) {
+                    //     const newAvatarUrl = result.profile?.avatar || 'images/default-avatar.png';
+                    //     console.log("New avatar URL from backend:", newAvatarUrl);
+                    //     const profileImg = document.getElementById('profile-img');
+                    //     profileImg.src = `http://127.0.0.1:8000${newAvatarUrl}?t=${new Date().getTime()}`; // Force reload with base URL
+                    //     profileImg.onload = () => console.log("Image loaded successfully");
+                    //     profileImg.onerror = () => console.error("Image failed to load:", newAvatarUrl);
+                    // }
+                    loadProfileInfo();
                     alert("Profile updated successfully!");
                     // Sync with backend
-                    await loadProfileInfo();
-                } else {
+                }
+                else
+                {
                     console.error("Server error:", result);
                     alert("Failed to update profile: " + JSON.stringify(result));
                 }
